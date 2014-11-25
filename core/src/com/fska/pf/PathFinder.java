@@ -7,9 +7,12 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.TextField;
+import com.badlogic.gdx.scenes.scene2d.utils.Align;
 import com.badlogic.gdx.utils.viewport.FillViewport;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
@@ -50,26 +53,40 @@ public class PathFinder extends ApplicationAdapter {
 
 		// Develop the side GUI to run different pathing algos;
 		Viewport guiViewport = new ScreenViewport();
-//		guiViewport.setScreenWidth(Gdx.graphics.getWidth());
-//		guiViewport.setScreenHeight(Gdx.graphics.getHeight());
-		guiViewport.setScreenPosition(Gdx.graphics.getWidth() - 300, 0);
 		guiViewport.update(100, 100);
 		stage = new Stage(guiViewport);
 		Skin defaultSkin = new Skin(
 				Gdx.files.internal("data/uiskin.json"));
 		Table baseTable = new Table(defaultSkin);
 		
-		TextField textField_1 = new TextField("Default Test", defaultSkin);
-		baseTable.add(textField_1);
+		Label textField_1 = new Label("Pathing Generator", defaultSkin);
+		textField_1.setPosition(Gdx.graphics.getWidth() - 250, Gdx.graphics.getHeight() - 50);
+		textField_1.setFontScale(1.5f);
+		TextButton setStartNode = new TextButton("Set Start Location", defaultSkin);
+		TextButton setEndNode = new TextButton("Set End Location",defaultSkin);
+		TextButton showGreedyPath = new TextButton("Greedy Path", defaultSkin);
+		Label greedyTimeProcess = new Label("Time Greedy Pathing took (ms)",defaultSkin);
+		TextButton resetButton = new TextButton("Reset", defaultSkin);
+		baseTable.add(setStartNode);
+		baseTable.row();
+		baseTable.add(setEndNode);
+		baseTable.row();
+		baseTable.add(showGreedyPath);
+		baseTable.add(greedyTimeProcess);
+		baseTable.row();
+		baseTable.add(resetButton);
+		baseTable.setPosition(Gdx.graphics.getWidth() - 150, Gdx.graphics.getHeight() - 100);
+		stage.addActor(textField_1);
 		stage.addActor(baseTable);
-		
+		stage.setDebugAll(true);
+		Gdx.input.setInputProcessor(stage);
 	}
 
 	int depth = 0;
 
 	@Override
 	public void render() {
-		stage.act();
+		stage.act(Gdx.graphics.getDeltaTime());
 		Gdx.gl.glClearColor(0, 0, 0, 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 		batch.begin();
