@@ -2,10 +2,13 @@ package com.fska.pf;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input.Buttons;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.scenes.scene2d.Event;
+import com.badlogic.gdx.scenes.scene2d.EventListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
@@ -13,6 +16,9 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.TextField;
 import com.badlogic.gdx.scenes.scene2d.utils.Align;
+import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
+import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener.ChangeEvent;
+import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.viewport.FillViewport;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
@@ -24,65 +30,133 @@ import com.fska.pf.pathing.Vector2_Int;
 public class PathFinder extends ApplicationAdapter {
 	SpriteBatch batch;
 	Texture img;
-	Texture path;
+	Texture greedyPath;
 
 	private MapBase mb;
 	private IPathFinder[] pathFinders;
 
 	private Stage stage;
 
+	Vector2_Int startNode, endNode;
+
+	private Label startNodeCoord, endNodeCoord;
+	private Label[] pathFinderCost;
+	
+	Skin defaultSkin;
 	@Override
 	public void create() {
 		batch = new SpriteBatch();
-		mb = new MapBase(640, 480, MathUtils.random(Integer.MAX_VALUE / 2));
-
-		img = new Texture(mb.drawMap());
-
-		pathFinders = new IPathFinder[] { new GreedyPath() };
-
-		pathFinders[0].calculatePath(
-				mb,
-				new Vector2_Int(MathUtils.random(mb.getWidth() / 2), MathUtils
-						.random(mb.getHeight() / 2)),
-				new Vector2_Int(MathUtils.random(mb.getWidth() / 2)
-						+ mb.getWidth() / 2,
-						MathUtils.random(mb.getHeight() / 2) + mb.getHeight()
-								/ 2));
-
-		path = new Texture(pathFinders[0].drawPath(mb));
+		defaultSkin = new Skin(Gdx.files.internal("data/uiskin.json"));
+		initialize();
 
 		// Develop the side GUI to run different pathing algos;
 		Viewport guiViewport = new ScreenViewport();
-		guiViewport.update(100, 100);
 		stage = new Stage(guiViewport);
-		Skin defaultSkin = new Skin(
-				Gdx.files.internal("data/uiskin.json"));
 		Table baseTable = new Table(defaultSkin);
-		
+
 		Label textField_1 = new Label("Pathing Generator", defaultSkin);
-		textField_1.setPosition(Gdx.graphics.getWidth() - 250, Gdx.graphics.getHeight() - 50);
+		textField_1.setPosition(Gdx.graphics.getWidth() - 250,
+				Gdx.graphics.getHeight() - 50);
 		textField_1.setFontScale(1.5f);
-		TextButton setStartNode = new TextButton("Set Start Location", defaultSkin);
-		TextButton setEndNode = new TextButton("Set End Location",defaultSkin);
-		TextButton showGreedyPath = new TextButton("Greedy Path", defaultSkin);
-		Label greedyTimeProcess = new Label("Time Greedy Pathing took (ms)",defaultSkin);
+		TextButton setStartNode = new TextButton("Set Start Location",
+				defaultSkin);
+		startNodeCoord = new Label(startNode.x + "," + startNode.y, defaultSkin);
+		TextButton setEndNode = new TextButton("Set End Location", defaultSkin);
+		endNodeCoord = new Label(endNode.x + "," + endNode.y, defaultSkin);
+		TextButton showGreedyPathBtn = new TextButton("Greedy Path",
+				defaultSkin);
+		Label greedyTimeProcess = new Label("Time Greedy Pathing took (ms)",
+				defaultSkin);
 		TextButton resetButton = new TextButton("Reset", defaultSkin);
+		
+		
+		
 		baseTable.add(setStartNode);
+		baseTable.add(startNodeCoord);
 		baseTable.row();
 		baseTable.add(setEndNode);
+		baseTable.add(endNodeCoord);
 		baseTable.row();
-		baseTable.add(showGreedyPath);
-		baseTable.add(greedyTimeProcess);
+		baseTable.add(showGreedyPathBtn);
 		baseTable.row();
 		baseTable.add(resetButton);
-		baseTable.setPosition(Gdx.graphics.getWidth() - 150, Gdx.graphics.getHeight() - 100);
+		baseTable.setPosition(Gdx.graphics.getWidth() - 150,
+				Gdx.graphics.getHeight() - 150);
+		greedyTimeProcess.setPosition(Gdx.graphics.getWidth() - 250,
+				Gdx.graphics.getHeight() - 300);
+		stage.addActor(greedyTimeProcess);
 		stage.addActor(textField_1);
 		stage.addActor(baseTable);
+		
+		//Add the cost labels to the stage;
+		for(int c = 0; c < pathFinderCost.length; c++){
+			pathFinderCost[c].setPosition(Gdx.graphics.getWidth() - 200, Gdx.graphics.getHeight() - 325 - c * 25);
+			stage.addActor(pathFinderCost[c]);
+		}
+		
 		stage.setDebugAll(true);
 		Gdx.input.setInputProcessor(stage);
+
+		setStartNode.addListener(new EventListener() {
+
+			@Override
+			public boolean handle(Event event) {
+				if (event instanceof ChangeEvent) {
+					ChangeEvent ce = (ChangeEvent) event;
+					ce.handle();
+					System.out.println("Click new Start Node...");
+				}
+				return false;
+			}
+		});
+
+		setEndNode.addListener(new EventListener() {
+
+			@Override
+			public boolean handle(Event event) {
+				if (event instanceof ChangeEvent) {
+					ChangeEvent ce = (ChangeEvent) event;
+					ce.handle();
+					System.out.println("Click new End Node...");
+				}
+				return false;
+			}
+		});
+
+		showGreedyPathBtn.addListener(new EventListener() {
+
+			@Override
+			public boolean handle(Event event) {
+				if (event instanceof ChangeEvent) {
+					ChangeEvent ce = (ChangeEvent) event;
+					ce.handle();
+					showGreedyPath = !showGreedyPath;
+					System.out.println("Show / Hide the showGreedyPath");
+				}
+				return false;
+			}
+		});
+
+		resetButton.addListener(new EventListener() {
+
+			@Override
+			public boolean handle(Event event) {
+				if (event instanceof ChangeEvent) {
+					ChangeEvent ce = (ChangeEvent) event;
+					ce.handle();
+					isResetState = true;
+					System.out.println("Reset everything");
+				}
+				return false;
+			}
+		});
 	}
 
 	int depth = 0;
+
+	private boolean isSetStartNode, isSetEndNode;
+	private boolean isResetState;
+	private boolean showGreedyPath;
 
 	@Override
 	public void render() {
@@ -90,14 +164,49 @@ public class PathFinder extends ApplicationAdapter {
 		Gdx.gl.glClearColor(0, 0, 0, 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 		batch.begin();
-		
+
 		batch.draw(img, 0, 0, Gdx.graphics.getWidth() - 300,
 				Gdx.graphics.getHeight());
-		batch.draw(path, 0, 0, Gdx.graphics.getWidth() - 300,
-				Gdx.graphics.getHeight());
+		if (showGreedyPath)
+			batch.draw(greedyPath, 0, 0, Gdx.graphics.getWidth() - 300,
+					Gdx.graphics.getHeight());
 		batch.end();
 		stage.draw();
-		// depth++;
-		// img = new Texture(mb.drawMap(depth));
+
+		if (isResetState) {
+			initialize();
+			isResetState = false;
+		}
+	}
+
+	private void initialize() {
+		mb = new MapBase(1024, 768, MathUtils.random(Integer.MAX_VALUE / 2));
+		pathFinders = new IPathFinder[] { new GreedyPath() };
+		img = new Texture(mb.drawMap());
+
+		startNode = new Vector2_Int(MathUtils.random(mb.getWidth() / 2),
+				MathUtils.random(mb.getHeight() / 2));
+
+		endNode = new Vector2_Int(MathUtils.random(mb.getWidth() / 2)
+				+ mb.getWidth() / 2, MathUtils.random(mb.getHeight() / 2)
+				+ mb.getHeight() / 2);
+		
+		System.out.println("Is start / end node the same? " + startNode.equals(endNode));
+		
+		for (IPathFinder pathFinder : pathFinders) {
+			pathFinder.calculatePath(mb, startNode, endNode);
+		}
+		
+		greedyPath = new Texture(pathFinders[0].drawPath(mb));
+		if(startNodeCoord != null){
+			startNodeCoord.setText(startNode.x + "," + startNode.y);
+			endNodeCoord.setText(endNode.getX() + "," + endNode.getY());
+		}
+		
+		pathFinderCost = new Label[pathFinders.length];
+
+		for(int c = 0; c < pathFinders.length; c++){
+			pathFinderCost[c] = new Label(pathFinders[c].getPathCost(mb).toString(), defaultSkin);
+		}
 	}
 }

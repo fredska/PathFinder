@@ -53,17 +53,16 @@ public class MapBase {
 //			layerColors = new Color[] { Color.GREEN, Color.DARK_GRAY,
 //					Color.GRAY, Color.LIGHT_GRAY};
 			
-			layerThresholds = new double[] { 0.025, 0.085, 0.115,0.1425,0.185 };
+			layerThresholds = new double[] { 0.635, 0.435, 0.315,0.0,-0.125, -0.65 };
 			layerColors = new Color[] { Color.WHITE, Color.LIGHT_GRAY,
-					Color.GRAY, Color.DARK_GRAY, new Color(0x006F48FF)};
+					Color.GRAY, Color.DARK_GRAY, new Color(0x006F48FF), Color.BLUE};
 		}
 		generate(depth);
 		Pixmap pixmap = new Pixmap(WIDTH, HEIGHT, Format.RGBA8888);
 		for (int x = 0; x < tileMoveValue.length; x++) {
 			for (int y = 0; y < tileMoveValue[0].length; y++) {
 				for (int c = 0; c < layerThresholds.length; c++) {
-					if (tileMoveValue[x][y] >= -layerThresholds[c]
-							&& tileMoveValue[x][y] <= layerThresholds[c]) {
+					if (tileMoveValue[x][y] >= layerThresholds[c]) {
 						pixmap.setColor(layerColors[c]);
 						pixmap.drawPixel(x, y);
 						break;

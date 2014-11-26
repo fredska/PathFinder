@@ -10,10 +10,12 @@ public abstract class PathFinderBase implements IPathFinder {
 	protected List<Vector2_Int> nodePath;
 	
 	@Override
-	public Long getPathCost(MapBase map, Vector2_Int[] nodes) {
+	public Long getPathCost(MapBase map) {
+		if(nodePath == null)
+			return -1l;
 		double result = 0;
 		
-		for(Vector2_Int node : nodes){
+		for(Vector2_Int node : nodePath){
 			result += map.getTileValue(node.x, node.y);
 		}
 		

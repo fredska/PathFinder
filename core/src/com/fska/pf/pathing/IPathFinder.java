@@ -6,7 +6,7 @@ import com.fska.pf.map.MapBase;
 
 
 public interface IPathFinder {
-	public Long getPathCost(MapBase map, Vector2_Int[] nodes);
+	public Long getPathCost(MapBase map);
 	public void calculatePath(MapBase map, Vector2_Int start, Vector2_Int end);
 	
 	public Pixmap drawPath(MapBase map);
