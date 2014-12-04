@@ -10,4 +10,5 @@ public interface IPathFinder {
 	public void calculatePath(MapBase map, Vector2_Int start, Vector2_Int end);
 	
 	public Pixmap drawPath(MapBase map);
+	public void ignoreWater(boolean ignoreWater);
 }

@@ -8,7 +8,7 @@ import com.fska.pf.map.MapBase;
 public abstract class PathFinderBase implements IPathFinder {
 
 	protected List<Vector2_Int> nodePath;
-	
+	protected boolean ignoreWater;
 	@Override
 	public Long getPathCost(MapBase map) {
 		if(nodePath == null)
@@ -16,12 +16,15 @@ public abstract class PathFinderBase implements IPathFinder {
 		double result = 0;
 		
 		for(Vector2_Int node : nodePath){
-			result += map.getTileValue(node.x, node.y);
+			result += map.getTerrainType(node.x, node.y).getPathCost();
 		}
 		
 		return (long)result;
 	}
 
 	public abstract void calculatePath(MapBase map, Vector2_Int start, Vector2_Int end);
-
+	
+	public void ignoreWater(boolean ignoreWater){
+		this.ignoreWater = ignoreWater;
+	}
 }

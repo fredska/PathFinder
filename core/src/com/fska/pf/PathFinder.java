@@ -2,7 +2,6 @@ package com.fska.pf;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input.Buttons;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -14,15 +13,12 @@ import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
-import com.badlogic.gdx.scenes.scene2d.ui.TextField;
-import com.badlogic.gdx.scenes.scene2d.utils.Align;
-import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener.ChangeEvent;
-import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
-import com.badlogic.gdx.utils.viewport.FillViewport;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.fska.pf.map.MapBase;
+import com.fska.pf.map.TerrainType;
+import com.fska.pf.pathing.Dijkstra;
 import com.fska.pf.pathing.GreedyPath;
 import com.fska.pf.pathing.IPathFinder;
 import com.fska.pf.pathing.Vector2_Int;
@@ -180,17 +176,20 @@ public class PathFinder extends ApplicationAdapter {
 	}
 
 	private void initialize() {
-		mb = new MapBase(1024, 768, MathUtils.random(Integer.MAX_VALUE / 2));
-		pathFinders = new IPathFinder[] { new GreedyPath() };
+		mb = new MapBase(320, 240, MathUtils.random(Integer.MAX_VALUE / 2));
+		pathFinders = new IPathFinder[] { new GreedyPath(), new Dijkstra() };
 		img = new Texture(mb.drawMap());
-
+//		do{
 		startNode = new Vector2_Int(MathUtils.random(mb.getWidth() / 2),
 				MathUtils.random(mb.getHeight() / 2));
-
+//		}
+//		while(!mb.getTerrainType(startNode.getX(), startNode.getY()).equals(TerrainType.FOREST));
+//		do{
 		endNode = new Vector2_Int(MathUtils.random(mb.getWidth() / 2)
-				+ mb.getWidth() / 2, MathUtils.random(mb.getHeight() / 2)
-				+ mb.getHeight() / 2);
-		
+				+ mb.getWidth() / 2 - 1, MathUtils.random(mb.getHeight() / 2)
+				+ mb.getHeight() / 2 - 1);
+//		}
+//		while(!mb.getTerrainType(endNode.getX(), endNode.getY()).equals(TerrainType.BEACH));
 		System.out.println("Is start / end node the same? " + startNode.equals(endNode));
 		
 		for (IPathFinder pathFinder : pathFinders) {
