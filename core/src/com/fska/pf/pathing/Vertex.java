@@ -30,4 +30,8 @@ public class Vertex extends Vector2_Int {
 	public void setPrev(Vertex prev) {
 		this.prev = prev;
 	}
+	
+	public Vector2_Int getVector2_Int(){
+		return new Vector2_Int(x,y);
+	}
 }

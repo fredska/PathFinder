@@ -27,7 +27,7 @@ public class PathFinder extends ApplicationAdapter {
 	SpriteBatch batch;
 	Texture img;
 	Texture greedyPath;
-
+	Texture dijkstraPath;
 	private MapBase mb;
 	private IPathFinder[] pathFinders;
 
@@ -37,8 +37,9 @@ public class PathFinder extends ApplicationAdapter {
 
 	private Label startNodeCoord, endNodeCoord;
 	private Label[] pathFinderCost;
-	
+
 	Skin defaultSkin;
+
 	@Override
 	public void create() {
 		batch = new SpriteBatch();
@@ -61,12 +62,12 @@ public class PathFinder extends ApplicationAdapter {
 		endNodeCoord = new Label(endNode.x + "," + endNode.y, defaultSkin);
 		TextButton showGreedyPathBtn = new TextButton("Greedy Path",
 				defaultSkin);
+		TextButton showDijkstrasPathBtn = new TextButton("Dijkstra's Path",
+				defaultSkin);
 		Label greedyTimeProcess = new Label("Time Greedy Pathing took (ms)",
 				defaultSkin);
 		TextButton resetButton = new TextButton("Reset", defaultSkin);
-		
-		
-		
+
 		baseTable.add(setStartNode);
 		baseTable.add(startNodeCoord);
 		baseTable.row();
@@ -74,6 +75,8 @@ public class PathFinder extends ApplicationAdapter {
 		baseTable.add(endNodeCoord);
 		baseTable.row();
 		baseTable.add(showGreedyPathBtn);
+		baseTable.row();
+		baseTable.add(showDijkstrasPathBtn);
 		baseTable.row();
 		baseTable.add(resetButton);
 		baseTable.setPosition(Gdx.graphics.getWidth() - 150,
@@ -83,13 +86,14 @@ public class PathFinder extends ApplicationAdapter {
 		stage.addActor(greedyTimeProcess);
 		stage.addActor(textField_1);
 		stage.addActor(baseTable);
-		
-		//Add the cost labels to the stage;
-		for(int c = 0; c < pathFinderCost.length; c++){
-			pathFinderCost[c].setPosition(Gdx.graphics.getWidth() - 200, Gdx.graphics.getHeight() - 325 - c * 25);
+
+		// Add the cost labels to the stage;
+		for (int c = 0; c < pathFinderCost.length; c++) {
+			pathFinderCost[c].setPosition(Gdx.graphics.getWidth() - 200,
+					Gdx.graphics.getHeight() - 325 - c * 25);
 			stage.addActor(pathFinderCost[c]);
 		}
-		
+
 		stage.setDebugAll(true);
 		Gdx.input.setInputProcessor(stage);
 
@@ -133,6 +137,22 @@ public class PathFinder extends ApplicationAdapter {
 			}
 		});
 
+		showDijkstrasPathBtn.addListener(new EventListener() {
+			@Override
+			public boolean handle(Event event) {
+				if (event instanceof ChangeEvent) {
+					ChangeEvent ce = (ChangeEvent) event;
+					ce.handle();
+					showDijkstraPath = !showDijkstraPath;
+					if (showDijkstraPath)
+						System.out.println("Show the showDijkstraPath");
+					else
+						System.out.println("Hide the showDijkstraPath");
+				}
+				return false;
+			}
+		});
+
 		resetButton.addListener(new EventListener() {
 
 			@Override
@@ -153,6 +173,7 @@ public class PathFinder extends ApplicationAdapter {
 	private boolean isSetStartNode, isSetEndNode;
 	private boolean isResetState;
 	private boolean showGreedyPath;
+	private boolean showDijkstraPath;
 
 	@Override
 	public void render() {
@@ -166,6 +187,9 @@ public class PathFinder extends ApplicationAdapter {
 		if (showGreedyPath)
 			batch.draw(greedyPath, 0, 0, Gdx.graphics.getWidth() - 300,
 					Gdx.graphics.getHeight());
+		if(showDijkstraPath)
+			batch.draw(dijkstraPath, 0, 0, Gdx.graphics.getWidth() - 300,
+					Gdx.graphics.getHeight());
 		batch.end();
 		stage.draw();
 
@@ -176,36 +200,42 @@ public class PathFinder extends ApplicationAdapter {
 	}
 
 	private void initialize() {
-		mb = new MapBase(320, 240, MathUtils.random(Integer.MAX_VALUE / 2));
+		mb = new MapBase(160, 120, MathUtils.random(Integer.MAX_VALUE / 2));
 		pathFinders = new IPathFinder[] { new GreedyPath(), new Dijkstra() };
 		img = new Texture(mb.drawMap());
-//		do{
+		// do{
 		startNode = new Vector2_Int(MathUtils.random(mb.getWidth() / 2),
 				MathUtils.random(mb.getHeight() / 2));
-//		}
-//		while(!mb.getTerrainType(startNode.getX(), startNode.getY()).equals(TerrainType.FOREST));
-//		do{
+		// }
+		// while(!mb.getTerrainType(startNode.getX(),
+		// startNode.getY()).equals(TerrainType.FOREST));
+		// do{
 		endNode = new Vector2_Int(MathUtils.random(mb.getWidth() / 2)
 				+ mb.getWidth() / 2 - 1, MathUtils.random(mb.getHeight() / 2)
 				+ mb.getHeight() / 2 - 1);
-//		}
-//		while(!mb.getTerrainType(endNode.getX(), endNode.getY()).equals(TerrainType.BEACH));
-		System.out.println("Is start / end node the same? " + startNode.equals(endNode));
-		
+		// }
+		// while(!mb.getTerrainType(endNode.getX(),
+		// endNode.getY()).equals(TerrainType.BEACH));
+		System.out.println("Is start / end node the same? "
+				+ startNode.equals(endNode));
+
 		for (IPathFinder pathFinder : pathFinders) {
 			pathFinder.calculatePath(mb, startNode, endNode);
 		}
-		
+
 		greedyPath = new Texture(pathFinders[0].drawPath(mb));
-		if(startNodeCoord != null){
+		dijkstraPath = new Texture(pathFinders[1].drawPath(mb));
+		if (startNodeCoord != null) {
 			startNodeCoord.setText(startNode.x + "," + startNode.y);
 			endNodeCoord.setText(endNode.getX() + "," + endNode.getY());
 		}
 		
+
 		pathFinderCost = new Label[pathFinders.length];
 
-		for(int c = 0; c < pathFinders.length; c++){
-			pathFinderCost[c] = new Label(pathFinders[c].getPathCost(mb).toString(), defaultSkin);
+		for (int c = 0; c < pathFinders.length; c++) {
+			pathFinderCost[c] = new Label(pathFinders[c].getPathCost(mb)
+					.toString(), defaultSkin);
 		}
 	}
 }

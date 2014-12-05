@@ -15,23 +15,24 @@ public class Dijkstra extends PathFinderBase {
 	private int map_width, map_height;
 	private Map<Vector2_Int, Vertex> graphVertex;
 	private Vector2_Int end;
+
 	@Override
 	public Pixmap drawPath(MapBase map) {
-		if(graphVertex == null){
+		if (graphVertex == null) {
 			calculatePath(map, new Vector2_Int(10, 10),
 					new Vector2_Int(map.getWidth() - 20, map.getHeight() - 20));
 		}
-		
+
 		Pixmap pixmap = new Pixmap(map.getWidth(), map.getHeight(),
 				Format.RGBA8888);
 		pixmap.setColor(Color.ORANGE);
-		
-		Vertex endPiece = getVertexNode(graphVertex, end.getX(), end.getY());
-		while(endPiece.getDist() != 0){
+
+		Vertex endPiece = getVertexNode(graphVertex, end);
+		while (endPiece.getDist() != 0) {
 			pixmap.drawPixel(endPiece.getX(), endPiece.getY());
 			endPiece = endPiece.getPrev();
 		}
-		
+
 		return pixmap;
 	}
 
@@ -41,77 +42,79 @@ public class Dijkstra extends PathFinderBase {
 		map_width = map.getWidth();
 		map_height = map.getHeight();
 		graphVertex = new HashMap<Vector2_Int, Vertex>();
-		for(int x = 0; x < map_width; x++){
-			for(int y = 0; y < map_height; y++){
-				graphVertex.put(new Vector2_Int(x,y),new Vertex(x,y,Double.POSITIVE_INFINITY, null));
+		Map<Vector2_Int, Vertex> Q = new HashMap<Vector2_Int, Vertex>();
+		for (int x = 0; x < map_width; x++) {
+			for (int y = 0; y < map_height; y++) {
+				graphVertex.put(new Vector2_Int(x, y), new Vertex(x, y,
+						Double.POSITIVE_INFINITY, null));
+				Q.put(new Vector2_Int(x, y), new Vertex(x, y,
+						Double.POSITIVE_INFINITY, null));
 			}
 		}
-		
-		//Set the source distance to 0;
-		graphVertex.get(start.getX() + (start.getY() * map_width)).setDist(0);
-		
+		// Set the source distance to 0;
+		Q.get(start).setDist(0);
+
 		Vertex u = null;
-		while(!graphVertex.isEmpty()){
-			//Start with the source vertex
-			u = findMinDist(graphVertex);
-			graphVertex.remove(u);
-			
-			//For each neighbor v of u;
-			for(Vertex v : findNeighbors(graphVertex, u)){
+		while (!Q.isEmpty()) {
+			// Start with the source vertex
+			u = findMinDist(Q);
+			Q.remove(u.getVector2_Int());
+
+			// For each neighbor v of u;
+			for (Vertex v : findNeighbors(Q, u)) {
 				double alt = u.getDist() + map.getTileValue(v.x, v.y);
-				if(alt < v.getDist()){
+				if (alt < v.getDist()) {
 					v.setDist(alt);
 					v.setPrev(u);
+					Vertex tmp = graphVertex.get(v.getVector2_Int());
+					tmp.setPrev(graphVertex.get(u.getVector2_Int()));
+					tmp.setDist(alt);
 				}
 			}
 		}
 	}
-	
-	private Vertex findMinDist(List<Vertex> queue){
+
+	private Vertex findMinDist(Map<Vector2_Int, Vertex> queue) {
 		double min = Double.POSITIVE_INFINITY;
 		Vertex result = queue.get(0);
-		for(Vertex u : queue){
-			if(u.getDist() < min){
+		for (Vertex u : queue.values()) {
+			if (u.getDist() < min) {
 				min = u.getDist();
 				result = u;
 			}
 		}
 		return result;
 	}
-	
-	private List<Vertex> findNeighbors(List<Vertex> queue, Vertex source){
+
+	private List<Vertex> findNeighbors(Map<Vector2_Int, Vertex> queue,
+			Vertex source) {
 		int sX = source.getX();
 		int sY = source.getY();
-		//Look only in up, down, left and right directions;
-		int northX = sX, northY = sY-1;
-		int southX = sX, southY = sY+1;
-		int westX = sX - 1, westY = sY;
-		int eastX = sX + 1, eastY = sY;
-		
+		// Look only in up, down, left and right directions;
+		Vector2_Int[] directions = new Vector2_Int[] {
+				new Vector2_Int(sX, sY - 1), new Vector2_Int(sX, sY + 1),
+				new Vector2_Int(sX - 1, sY), new Vector2_Int(sX + 1, sY) };
+
 		List<Vertex> neighbors = new ArrayList<Vertex>();
-		
-		if(isValidCoordinate(northX, northY))
-			neighbors.add(getVertexNode(queue, northX, northY));
-		
-		if(isValidCoordinate(southX, southY))
-			neighbors.add(getVertexNode(queue, southX, southY));
 
-		if(isValidCoordinate(westX, westY))
-			neighbors.add(getVertexNode(queue, westX, westY));
+		for (Vector2_Int direction : directions) {
+			if (isValidCoordinate(direction.getX(), direction.getY())) {
+				Vertex node = getVertexNode(queue, direction);
+				if (node != null)
+					neighbors.add(node);
+			}
+		}
 
-		if(isValidCoordinate(eastX, eastY))
-			neighbors.add(getVertexNode(queue, eastX, eastY));
-		
 		return neighbors;
 	}
-	
-	//Returns true if coordinates fall within the 
+
+	// Returns true if coordinates fall within the
 	// map boundaries
-	private boolean isValidCoordinate(int x, int y){
+	private boolean isValidCoordinate(int x, int y) {
 		return (x >= 0 && x < map_width) && (y >= 0 && y < map_height);
 	}
-	
-	private Vertex getVertexNode(List<Vertex> queue, int x, int y){
-		return queue.get(x + (y * map_width));
+
+	private Vertex getVertexNode(Map<Vector2_Int, Vertex> queue, Vector2_Int key) {
+		return queue.get(key);
 	}
 }
