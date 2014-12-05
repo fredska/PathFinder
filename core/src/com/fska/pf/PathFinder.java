@@ -200,22 +200,26 @@ public class PathFinder extends ApplicationAdapter {
 	}
 
 	private void initialize() {
-		mb = new MapBase(160, 120, MathUtils.random(Integer.MAX_VALUE / 2));
+		mb = new MapBase(200,200, MathUtils.random(Integer.MAX_VALUE / 2));
 		pathFinders = new IPathFinder[] { new GreedyPath(), new Dijkstra() };
 		img = new Texture(mb.drawMap());
 		// do{
-		startNode = new Vector2_Int(MathUtils.random(mb.getWidth() / 2),
-				MathUtils.random(mb.getHeight() / 2));
+//		startNode = new Vector2_Int(MathUtils.random(mb.getWidth() / 2),
+//				MathUtils.random(mb.getHeight() / 2));
 		// }
 		// while(!mb.getTerrainType(startNode.getX(),
 		// startNode.getY()).equals(TerrainType.FOREST));
 		// do{
-		endNode = new Vector2_Int(MathUtils.random(mb.getWidth() / 2)
-				+ mb.getWidth() / 2 - 1, MathUtils.random(mb.getHeight() / 2)
-				+ mb.getHeight() / 2 - 1);
+//		endNode = new Vector2_Int(MathUtils.random(mb.getWidth() / 2)
+//				+ mb.getWidth() / 2 - 1, MathUtils.random(mb.getHeight() / 2)
+//				+ mb.getHeight() / 2 - 1);
 		// }
 		// while(!mb.getTerrainType(endNode.getX(),
 		// endNode.getY()).equals(TerrainType.BEACH));
+		
+		startNode = new Vector2_Int(0,0);
+		endNode = new Vector2_Int(mb.getWidth()-1, mb.getHeight()-1);
+		
 		System.out.println("Is start / end node the same? "
 				+ startNode.equals(endNode));
 

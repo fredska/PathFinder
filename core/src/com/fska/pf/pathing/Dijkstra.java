@@ -27,7 +27,7 @@ public class Dijkstra extends PathFinderBase {
 				Format.RGBA8888);
 		pixmap.setColor(Color.ORANGE);
 
-		Vertex endPiece = getVertexNode(graphVertex, end);
+		Vertex endPiece = getVertexNode(graphVertex, new Vector2_Int(1,1));
 		while (endPiece.getDist() != 0) {
 			pixmap.drawPixel(endPiece.getX(), endPiece.getY());
 			endPiece = endPiece.getPrev();
@@ -53,6 +53,7 @@ public class Dijkstra extends PathFinderBase {
 		}
 		// Set the source distance to 0;
 		Q.get(start).setDist(0);
+		graphVertex.get(start).setDist(0);
 
 		Vertex u = null;
 		while (!Q.isEmpty()) {
@@ -61,14 +62,14 @@ public class Dijkstra extends PathFinderBase {
 			Q.remove(u.getVector2_Int());
 
 			// For each neighbor v of u;
-			for (Vertex v : findNeighbors(Q, u)) {
-				double alt = u.getDist() + map.getTileValue(v.x, v.y);
+			for (Vertex v : findNeighbors(graphVertex, u)) {
+				Vertex tmp = Q.get(v.getVector2_Int());
+				double alt = u.getDist() + map.getTerrainType(v.x, v.y).getPathCost();
 				if (alt < v.getDist()) {
+					tmp.setDist(alt);
+					tmp.setPrev(u);
 					v.setDist(alt);
 					v.setPrev(u);
-					Vertex tmp = graphVertex.get(v.getVector2_Int());
-					tmp.setPrev(graphVertex.get(u.getVector2_Int()));
-					tmp.setDist(alt);
 				}
 			}
 		}

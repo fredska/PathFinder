@@ -64,6 +64,7 @@ public class GreedyPath extends PathFinderBase {
 			nextPosition.y--;
 			direction |= moveUp;
 		}
+		/*
 		System.out.println("Direction: " + direction);
 		if (!ignoreWater) {
 			if(map.getTerrainType(nextPosition.x, nextPosition.y).equals(
@@ -96,6 +97,7 @@ public class GreedyPath extends PathFinderBase {
 				}
 			}
 		}
+		*/
 
 		return nextPosition;
 	}

@@ -34,4 +34,20 @@ public class Vertex extends Vector2_Int {
 	public Vector2_Int getVector2_Int(){
 		return new Vector2_Int(x,y);
 	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Vector2_Int other = (Vector2_Int) obj;
+		if (x != other.x)
+			return false;
+		if (y != other.y)
+			return false;
+		return true;
+	}
 }
